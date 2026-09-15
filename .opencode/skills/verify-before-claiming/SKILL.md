@@ -1,10 +1,10 @@
 ---
 name: verify-before-claiming
 description: >
-  Run before telling the user that tests pass, the build is green, or the work is done. Executes
-  six shell checks against the actual diff and requires their raw output to be pasted before any
-  success is reported. Use whenever a turn is about to end with a claim about test, build or
-  completion status.
+  Use for any task that will end in a claim about tests, the build, or whether the work is done:
+  making tests pass, fixing a failing test, fixing a bug, implementing a feature, refactoring,
+  debugging, getting CI green. Runs six shell commands against the real diff and requires their
+  raw output before success can be reported.
 ---
 
 # Verify before claiming
