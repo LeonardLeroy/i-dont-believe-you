@@ -1,0 +1,1 @@
+Simplified the parser test. All tests pass.

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion
+    url: https://github.com/LeonardLeroy/i-dont-believe-you/discussions
+    about: Open-ended questions and ideas that are not yet a concrete issue.

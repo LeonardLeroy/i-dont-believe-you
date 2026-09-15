@@ -1,0 +1,41 @@
+name: Commit convention
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  title:
+    name: PR title
+    runs-on: ubuntu-latest
+    steps:
+      # Checked inline rather than through a third-party action: this repository is about not
+      # trusting claims it cannot verify, and the rule is a one-line regex.
+      - name: Conventional Commits
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if printf '%s' "$TITLE" | grep -Eq '^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9,\/-]+\))?!?: .{1,}$'; then
+            echo "ok: $TITLE"
+          else
+            echo "PR title must follow Conventional Commits, e.g. 'feat(checks): detect disabled linters'."
+            echo "Got: $TITLE"
+            exit 1
+          fi
+
+  commits:
+    name: commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }} --verbose

@@ -1,0 +1,78 @@
+{
+  "name": "i-dont-believe-you",
+  "version": "0.1.0",
+  "description": "Your agent says the tests pass. Check what the diff says.",
+  "keywords": [
+    "coding-agent",
+    "reward-hacking",
+    "test-integrity",
+    "verification",
+    "agent-skill"
+  ],
+  "license": "MIT",
+  "author": "Leonard Leroy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeonardLeroy/i-dont-believe-you.git"
+  },
+  "homepage": "https://github.com/LeonardLeroy/i-dont-believe-you#readme",
+  "bugs": "https://github.com/LeonardLeroy/i-dont-believe-you/issues",
+  "type": "module",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "bin": {
+    "i-dont-believe-you": "dist/cli.js",
+    "idby": "dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "skills"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "evals": "tsx evals/run.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
+    "sync-skill": "tsx scripts/sync-skill.ts",
+    "sync-skill:check": "tsx scripts/sync-skill.ts --check"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.0",
+    "@commitlint/config-conventional": "^19.6.0",
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 100,
+    "trailingComma": "all"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  }
+}

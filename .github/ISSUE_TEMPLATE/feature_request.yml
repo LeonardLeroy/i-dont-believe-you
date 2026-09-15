@@ -1,0 +1,42 @@
+name: Feature request
+description: A new check, adapter, language profile or CLI capability
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind
+      options:
+        - A check (a new way an agent's claim can be wrong)
+        - A language profile
+        - A transcript adapter for another agent
+        - A reporter or output format
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What goes unnoticed today
+      description: Describe the case an agent gets away with right now.
+    validations:
+      required: true
+
+  - type: textarea
+    id: signal
+    attributes:
+      label: What would make it detectable
+      description: >
+        Which lines in the diff, or which part of a transcript, prove it. This project only ships
+        checks that can point at evidence.
+    validations:
+      required: true
+
+  - type: textarea
+    id: false-positives
+    attributes:
+      label: When would this fire wrongly
+      description: Cases where the same pattern is legitimate.
+    validations:
+      required: true

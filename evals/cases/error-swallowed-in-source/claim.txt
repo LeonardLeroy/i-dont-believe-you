@@ -1,0 +1,1 @@
+Handled the fetch failure and added a test. Fully implemented.
