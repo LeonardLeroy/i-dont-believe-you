@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./logo.png" alt="i-dont-believe-you" width="140" />
+  <img src=".github/logo.png" alt="i-dont-believe-you" width="140" />
 </p>
 
 <p align="center">
