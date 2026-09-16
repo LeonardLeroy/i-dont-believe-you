@@ -36,7 +36,7 @@ Three contributions are always welcome and need no prior discussion:
 
 - It must be one shell command that prints nothing when there is no problem.
 - It must run in under a second on a large repository.
-- It must not need anything beyond `git`, `grep` and a POSIX shell.
+- It must not need anything beyond `git`, `grep`, `sed`, `comm` and bash.
 - A false positive is worse than a miss. If you are unsure a pattern is safe, say so in the PR
   rather than widening it.
 

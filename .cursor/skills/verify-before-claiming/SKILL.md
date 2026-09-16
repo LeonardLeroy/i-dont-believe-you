@@ -3,7 +3,7 @@ name: verify-before-claiming
 description: >
   Use for any task that will end in a claim about tests, the build, or whether the work is done:
   making tests pass, fixing a failing test, fixing a bug, implementing a feature, refactoring,
-  debugging, getting CI green. Runs six shell commands against the real diff and requires their
+  debugging, getting CI green. Runs seven shell commands against the real diff and requires their
   raw output before success can be reported.
 ---
 
@@ -21,7 +21,7 @@ the file, and either fix the code or rewrite your summary so it states what is a
 
 ## The checks
 
-Run all six. They take under a second. `git diff HEAD -U0` shows only changed lines, so a `+`
+Run all seven. They take under a second. `git diff HEAD -U0` shows only changed lines, so a `+`
 prefix means the line is new in this change.
 
 ### 1. Did you disable a test?
@@ -87,6 +87,19 @@ git diff HEAD --name-only | grep -Ei '(^|/)(tests?|spec)s?/|[._-](test|spec)\.' 
 If this prints `NO TEST FILE CHANGED`, do not say you added tests, improved coverage, or covered
 anything.
 
+### 7. Did a named test disappear?
+
+<!-- check: test-name-gone -->
+
+```bash
+comm -23 <(git diff HEAD -U0 | grep -E '^-' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u) <(git diff HEAD -U0 | grep -E '^\+' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u)
+```
+
+Any output is the name of a test that existed before this change and does not exist now. It was
+either deleted or renamed, and a diff cannot tell those apart. Name which one it was. Replacing a
+failing test with a different passing one keeps the test count and the assertion count identical,
+so checks 3 and 4 stay silent while the suite gets weaker.
+
 ## Locating a hit
 
 The commands print the offending lines, not their location. To find one:
@@ -97,7 +110,7 @@ grep -rn 'PASTE THE LINE HERE' --include='*' .
 
 ## Reporting
 
-Paste the raw output of all six, then your summary. Not a description of the output. The output itself.
+Paste the raw output of all seven, then your summary. Not a description of the output. The output itself.
 
 A command that fails is not a silent check. If git reports an error instead of output, for
 example `unknown revision HEAD` in a repository with no commits yet, name the command that failed
@@ -105,7 +118,7 @@ and why. Never count a failed command as a pass.
 
 If every check ran and every one is silent, say exactly this and nothing stronger:
 
-> All six checks are silent. That means they found nothing, not that the code works.
+> All seven checks are silent. That means they found nothing, not that the code works.
 
 ## Never
 
@@ -123,6 +136,6 @@ weak or no explicit oracle signals ([arXiv:2606.18168](https://arxiv.org/abs/260
 general failure, satisfying the measure instead of the intent, is documented as reward hacking
 ([METR](https://metr.org/blog/2025-06-05-recent-reward-hacking/)).
 
-Checks 2 and 3 target that oracle weakness directly. The other four are not from those papers:
+Checks 2 and 3 target that oracle weakness directly. The other five are not from those papers:
 they are the same failure applied to things a diff can prove: a test that no longer runs, a test
-that is gone, an error path that does nothing, and a claim with no test file behind it.
+that is gone, an error path that does nothing, and a claim with no test file behind it, and a named test that quietly vanished.

@@ -34,7 +34,7 @@ npm run sync-skill:check # what CI runs
 ## Rules for a check
 
 - One shell command, silent when there is no problem.
-- Nothing beyond `git`, `grep` and a POSIX shell.
+- Nothing beyond `git`, `grep`, `sed`, `comm` and bash.
 - Under a second on a large repository.
 - A false positive is worse than a miss.
 

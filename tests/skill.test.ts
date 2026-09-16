@@ -20,6 +20,7 @@ describe('SKILL.md', () => {
       'test-file-gone',
       'swallowed-error',
       'no-test-touched',
+      'test-name-gone',
     ]);
   });
 
@@ -33,7 +34,7 @@ describe('SKILL.md', () => {
 
   it('keeps the commands runnable from a shell', async () => {
     for (const parsed of await loadChecks()) {
-      expect(parsed.command).toMatch(/^git |^R=\$\(git /);
+      expect(parsed.command).toMatch(/^git |^R=\$\(git |^comm -23 <\(git /);
       expect(parsed.command).not.toContain('PASTE');
     }
   });

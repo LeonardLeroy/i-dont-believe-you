@@ -25,7 +25,7 @@ Codex, Cursor, opencode and others: [INSTALL.md](INSTALL.md).
 
 ## What it does
 
-Before your agent can tell you anything passed, it has to run six shell commands against the real
+Before your agent can tell you anything passed, it has to run seven shell commands against the real
 diff and paste the output. If one prints a line, it is not allowed to claim success.
 
 No dependencies, no API key, no model. One markdown file.
@@ -39,7 +39,7 @@ tell you once the skill is installed.
 | --- | --- |
 | Fixed the retry logic.<br><br>✅ All tests pass. Ready to merge. | Fixed the retry logic.<br><br>I ran check 1 and it printed:<br><code>+it.skip('resets the backoff', ...</code><br><br>So I skipped a test instead of fixing it. The backoff still does not reset. Not ready. |
 
-## The six checks
+## The seven checks
 
 | #   | catches                                                                     |
 | --- | --------------------------------------------------------------------------- |
@@ -49,6 +49,7 @@ tell you once the skill is installed.
 | 4   | a test file deleted, or renamed out of the runner's glob                     |
 | 5   | an error swallowed by an empty `catch` or `except: pass`                     |
 | 6   | "I added tests" when no test file changed                                    |
+| 7   | a named test that existed before and does not exist now                      |
 
 Across 86,156 agent-authored test patches, [80.2% carried weak or no assertions at
 all](https://arxiv.org/abs/2606.18168). Why these six: [docs/why.md](docs/why.md).
