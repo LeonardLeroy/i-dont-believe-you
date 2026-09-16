@@ -51,8 +51,11 @@ tell you once the skill is installed.
 | 6   | "I added tests" when no test file changed                                    |
 | 7   | a named test that existed before and does not exist now                      |
 
-Across 86,156 agent-authored test patches, [80.2% carried weak or no assertions at
-all](https://arxiv.org/abs/2606.18168). Why these six: [docs/why.md](docs/why.md).
+When an agent writes more code than anyone reviews, the test suite becomes the only oversight
+left, and [optimising for it instead of the goal is the predictable
+failure](https://arxiv.org/abs/2605.21384). Across 86,156 agent-authored test patches,
+[80.2% carried weak or no assertions at all](https://arxiv.org/abs/2606.18168). Why these seven:
+[docs/why.md](docs/why.md).
 
 ## Tune it
 
@@ -66,7 +69,7 @@ you would rather not depend on the agent cooperating.
 
 The problem these checks exist for is measured in _All Smoke, No Alarm: Oracle Signals in
 Agent-Authored Test Code_ by Dipayan Banik, Kowshik Chowdhury and Shazibul Islam Shamim, and in
-METR's work on reward hacking. The checks themselves are not from those papers. They are six
+METR's work on reward hacking. The checks themselves are not from those papers. They are seven
 things a diff can prove, cheap enough to run every turn.
 
 ## License

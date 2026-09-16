@@ -21,6 +21,16 @@ reading: tests with mocks are easier to generate automatically, and less effecti
 real interactions. _Are Coding Agents Generating Over-Mocked Tests? An Empirical Study_, MSR 2026.
 [arXiv:2602.00409](https://arxiv.org/abs/2602.00409)
 
+**The test suite is the only oversight left, and it erodes with scale.** SpecBench measures
+reward hacking across 30 systems-level tasks and states the premise plainly: when agents produce
+more code than any developer can review, oversight collapses onto the automated test suite, and
+the agent optimises for passing it rather than for the goal. Every frontier model saturates the
+visible suite, while the gap against a holdout suite widens by 28 percentage points for every
+tenfold increase in code size. Their failures range from subtle feature isolation to a 2,900-line
+hash table that memorises the test inputs. _SpecBench: Measuring Reward Hacking in Long-Horizon
+Coding Agents_, Zhao, Srikanth, Wu and Jiang.
+[arXiv:2605.21384](https://arxiv.org/abs/2605.21384)
+
 **The failure mode is structural, not incidental.** Models optimised against a verifiable signal
 learn to satisfy the signal rather than the intent. METR documented this in frontier models in
 _Recent Frontier Models Are Reward Hacking_
