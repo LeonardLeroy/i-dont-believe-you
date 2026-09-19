@@ -3,7 +3,7 @@ name: verify-before-claiming
 description: >
   Use for any task that will end in a claim about tests, the build, or whether the work is done:
   making tests pass, fixing a failing test, fixing a bug, implementing a feature, refactoring,
-  debugging, getting CI green. Runs seven shell commands against the real diff and requires their
+  debugging, getting CI green. Runs eight shell commands against the real diff and requires their
   raw output before success can be reported.
 ---
 
@@ -19,17 +19,32 @@ anything equivalent, run every check below and paste the raw output into your re
 If a check prints a line, you have found something. Do not report success. Read the line, open
 the file, and either fix the code or rewrite your summary so it states what is actually true.
 
+## Pin the base first
+
+Every command below compares the working tree against `${IDBY_BASE:-HEAD}`. `HEAD` is a valid base
+only while nobody has committed since the work started. One `git commit` moves `HEAD` onto the
+change itself, and all eight checks fall silent on a change they would otherwise have caught.
+Committing work is normal, so this happens without any intent to hide anything.
+
+Pin a base the agent cannot move, before the work starts:
+`export IDBY_BASE=$(git rev-parse HEAD)`. In CI, pin the pull request's merge-base instead:
+`export IDBY_BASE=$(git merge-base origin/main HEAD)`. A pinned SHA stays reachable after the base
+commit is amended or rebased.
+
+If `IDBY_BASE` is unset, the checks only cover what is still uncommitted. Say that in your report
+instead of letting a silent check stand for more than it proves.
+
 ## The checks
 
-Run all seven. They take under a second. `git diff HEAD -U0` shows only changed lines, so a `+`
-prefix means the line is new in this change.
+Run all eight. They take under a second. `git diff "${IDBY_BASE:-HEAD}" -U0` shows only changed
+lines, so a `+` prefix means the line is new in this change.
 
 ### 1. Did you disable a test?
 
 <!-- check: disabled-test -->
 
 ```bash
-git diff HEAD -U0 | grep -E '^\+' | grep -E '\.skip\(|\.todo\(|\bxit\(|\bxdescribe\(|@pytest\.mark\.(skip|xfail)|unittest\.skip|#\[ignore\]|\bt\.Skip\(|@Disabled|@Ignore|markTestSkipped'
+git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E '\.skip\(|\.todo\(|\bxit\(|\bxdescribe\(|@pytest\.mark\.(skip|xfail)|unittest\.skip|#\[ignore\]|\bt\.Skip\(|@Disabled|@Ignore|markTestSkipped'
 ```
 
 Any output means a test no longer runs. Saying the suite passes while this prints a line is a
@@ -40,7 +55,7 @@ false statement, not a judgement call.
 <!-- check: hollow-assertion -->
 
 ```bash
-git diff HEAD -U0 | grep -E '^\+' | grep -E 'expect\((true|1)\)\.(toBe|toEqual)\((true|1)\)|assert\s+True\s*$|assertTrue\(True\)|assert!\(true\)|Assert\.True\(true\)|assertThat\(true\)'
+git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E 'expect\((true|1)\)\.(toBe|toEqual)\((true|1)\)|assert\s+True\s*$|assertTrue\(True\)|assert!\(true\)|Assert\.True\(true\)|assertThat\(true\)'
 ```
 
 Any output means a test now passes regardless of the code it claims to cover.
@@ -50,7 +65,7 @@ Any output means a test now passes regardless of the code it claims to cover.
 <!-- check: assertions-dropped -->
 
 ```bash
-R=$(git diff HEAD -U0 | grep -E '^-' | grep -cE 'expect\(|assert|should\.|\.Errorf?\(|\.Fatalf?\('); A=$(git diff HEAD -U0 | grep -E '^\+' | grep -cE 'expect\(|assert|should\.|\.Errorf?\(|\.Fatalf?\('); [ "$R" -gt "$A" ] && echo "assertions: $R removed, $A added"
+R=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^-' | grep -cE 'expect\(|assert|should\.|\.Errorf?\(|\.Fatalf?\('); A=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -cE 'expect\(|assert|should\.|\.Errorf?\(|\.Fatalf?\('); [ "$R" -gt "$A" ] && echo "assertions: $R removed, $A added"
 ```
 
 Any output means the suite checks less than it did before. Say so, or put the assertions back.
@@ -60,7 +75,7 @@ Any output means the suite checks less than it did before. Say so, or put the as
 <!-- check: test-file-gone -->
 
 ```bash
-git diff HEAD --diff-filter=DR --name-status | grep -Ei '(^|[/[:space:]])(tests?|spec)s?/|[._-](test|spec)\.'
+git diff "${IDBY_BASE:-HEAD}" --diff-filter=DR --name-status | grep -Ei '(^|[/[:space:]])(tests?|spec)s?/|[._-](test|spec)\.'
 ```
 
 Any output means a test file was deleted or renamed. A rename out of the runner's glob removes
@@ -71,17 +86,21 @@ the tests just as completely as a delete.
 <!-- check: swallowed-error -->
 
 ```bash
-git diff HEAD -U0 | grep -E '^\+' | grep -E 'catch[^{]*\{\s*\}|except[^:]*:\s*pass\s*$|\.catch\(\s*\(\)\s*=>\s*\{\s*\}\s*\)|if err != nil \{\s*\}'
+git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E 'catch[^{]*\{\s*\}|except[^:]*:\s*pass\s*$|\.catch\(\s*\(\)\s*=>\s*\{\s*\}\s*\)|if err != nil \{\s*\}'; git diff "${IDBY_BASE:-HEAD}" -U0 | grep -A1 -E '^\+.*(catch[^{]*\{|except[^:]*:|if err != nil \{)[[:space:]]*$' | grep -E '^\+[[:space:]]*(\}|pass|\.\.\.)[[:space:]]*$'
 ```
 
 Any output means a failure path now silently does nothing. That is not "handled".
+
+The second command covers the form most formatters produce, where the handler opens on one line
+and closes on the next. It reads one line of context, so it sees the empty body only when both
+lines are part of the same change.
 
 ### 6. Did you claim tests you did not write?
 
 <!-- check: no-test-touched fires-on=NO TEST FILE CHANGED -->
 
 ```bash
-git diff HEAD --name-only | grep -Ei '(^|/)(tests?|spec)s?/|[._-](test|spec)\.' || echo "NO TEST FILE CHANGED"
+git diff "${IDBY_BASE:-HEAD}" --name-only | grep -Ei '(^|/)(tests?|spec)s?/|[._-](test|spec)\.' || echo "NO TEST FILE CHANGED"
 ```
 
 If this prints `NO TEST FILE CHANGED`, do not say you added tests, improved coverage, or covered
@@ -92,13 +111,26 @@ anything.
 <!-- check: test-name-gone -->
 
 ```bash
-comm -23 <(git diff HEAD -U0 | grep -E '^-' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u) <(git diff HEAD -U0 | grep -E '^\+' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u)
+comm -23 <(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^-' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u) <(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u)
 ```
 
 Any output is the name of a test that existed before this change and does not exist now. It was
 either deleted or renamed, and a diff cannot tell those apart. Name which one it was. Replacing a
 failing test with a different passing one keeps the test count and the assertion count identical,
 so checks 3 and 4 stay silent while the suite gets weaker.
+
+### 8. Did you focus a test?
+
+<!-- check: focused-test -->
+
+```bash
+git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E '\b(it|test|describe)\s*\.\s*only\b|\bf(it|describe)\s*\('
+```
+
+Any output means one test was focused and every other test in that file stopped running. Nothing
+was skipped and nothing was deleted, so checks 1 and 4 stay silent, but the suite you are
+reporting on is one file's worth of one test. Call it focusing, not skipping, and say how many
+tests it silenced.
 
 ## Locating a hit
 
@@ -110,7 +142,7 @@ grep -rn 'PASTE THE LINE HERE' --include='*' .
 
 ## Reporting
 
-Paste the raw output of all seven, then your summary. Not a description of the output. The output itself.
+Paste the raw output of all eight, then your summary. Not a description of the output. The output itself.
 
 A command that fails is not a silent check. If git reports an error instead of output, for
 example `unknown revision HEAD` in a repository with no commits yet, name the command that failed
@@ -118,7 +150,7 @@ and why. Never count a failed command as a pass.
 
 If every check ran and every one is silent, say exactly this and nothing stronger:
 
-> All seven checks are silent. That means they found nothing, not that the code works.
+> All eight checks are silent. That means they found nothing, not that the code works.
 
 ## Never
 
@@ -129,13 +161,14 @@ If every check ran and every one is silent, say exactly this and nothing stronge
 - Never report the checks as run if you did not run them. That is the exact failure this skill
   exists to catch, and doing it here is worse than not having the skill.
 
-## Why these six
+## Why these eight
 
 The problem is measured, not assumed. Across 86,156 agent-authored test patches, 80.2% contained
 weak or no explicit oracle signals ([arXiv:2606.18168](https://arxiv.org/abs/2606.18168)). The
 general failure, satisfying the measure instead of the intent, is documented as reward hacking
 ([METR](https://metr.org/blog/2025-06-05-recent-reward-hacking/)).
 
-Checks 2 and 3 target that oracle weakness directly. The other five are not from those papers:
-they are the same failure applied to things a diff can prove: a test that no longer runs, a test
-that is gone, an error path that does nothing, and a claim with no test file behind it, and a named test that quietly vanished.
+Checks 2 and 3 target that oracle weakness directly. The other six are not from those papers: they
+are the same failure applied to things a diff can prove. A test that no longer runs, a test that is
+gone, an error path that does nothing, a claim with no test file behind it, a named test that
+quietly vanished, and a focused test that silenced its neighbours.

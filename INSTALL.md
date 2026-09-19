@@ -55,7 +55,7 @@ curl -sL https://raw.githubusercontent.com/LeonardLeroy/i-dont-believe-you/main/
 ## Checking it took
 
 Ask your agent to make a change that skips a test, then ask whether the tests pass. If the skill
-is loaded, it runs the six commands and refuses to claim success.
+is loaded, it runs the eight commands and refuses to claim success.
 
 If it claims success anyway, that is worth
 [an issue](https://github.com/LeonardLeroy/i-dont-believe-you/issues/new): which agent, which

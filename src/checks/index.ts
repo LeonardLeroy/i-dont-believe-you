@@ -1,5 +1,6 @@
 import type { Check } from '../types.js';
 import { deletedTests } from './deleted-tests.js';
+import { focusedTests } from './focused-tests.js';
 import { hollowAssertions } from './hollow-assertions.js';
 import { leftoverStubs } from './leftover-stubs.js';
 import { mockSmuggling } from './mock-smuggling.js';
@@ -10,6 +11,7 @@ import { swallowedErrors } from './swallowed-errors.js';
 
 export const checks: Check[] = [
   skippedTests,
+  focusedTests,
   hollowAssertions,
   removedAssertions,
   deletedTests,
@@ -25,6 +27,7 @@ export function checkById(id: string): Check | undefined {
 
 export {
   deletedTests,
+  focusedTests,
   hollowAssertions,
   leftoverStubs,
   mockSmuggling,

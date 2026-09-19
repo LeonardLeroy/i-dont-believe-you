@@ -25,7 +25,7 @@ Codex, Cursor, opencode et les autres : [INSTALL.md](../../INSTALL.md).
 
 ## Ce que ça fait
 
-Avant de pouvoir vous annoncer que quoi que ce soit est passé, votre agent doit exécuter six
+Avant de pouvoir vous annoncer que quoi que ce soit est passé, votre agent doit exécuter huit
 commandes shell sur le diff réel et en coller la sortie. Si l'une d'elles affiche une ligne, il
 n'a pas le droit d'annoncer un succès.
 
@@ -40,7 +40,7 @@ de vous dire une fois le skill installé.
 | --- | --- |
 | J'ai corrigé la logique de retry.<br><br>✅ Tous les tests passent. Prêt à merger. | J'ai corrigé la logique de retry.<br><br>J'ai lancé le check 1, il affiche :<br><code>+it.skip('resets the backoff', ...</code><br><br>J'ai donc désactivé un test au lieu de le corriger. Le backoff ne se réinitialise toujours pas. Ce n'est pas prêt. |
 
-## Les six checks
+## Les huit checks
 
 | #   | détecte                                                                        |
 | --- | ------------------------------------------------------------------------------ |
@@ -50,10 +50,12 @@ de vous dire une fois le skill installé.
 | 4   | un fichier de test supprimé, ou renommé hors du glob du runner                  |
 | 5   | une erreur avalée par un `catch` vide ou un `except: pass`                      |
 | 6   | « j'ai ajouté des tests » alors qu'aucun fichier de test n'a changé             |
+| 7   | un test nommé qui existait avant et qui n'existe plus                           |
+| 8   | un test focalisé avec `.only`, qui empêche tous les autres tests du fichier de tourner |
 
 Sur 86 156 patches de test écrits par des agents,
 [80,2 % ne portaient aucune assertion explicite, ou des assertions faibles](https://arxiv.org/abs/2606.18168).
-Pourquoi ces six : [docs/why.md](../../docs/why.md).
+Pourquoi ces huit : [docs/why.md](../../docs/why.md).
 
 ## Adapter
 
@@ -68,7 +70,7 @@ CI, pour quand vous préférez ne pas dépendre de la coopération de l'agent.
 Le problème que ces checks adressent est mesuré dans _All Smoke, No Alarm: Oracle Signals in
 Agent-Authored Test Code_ de Dipayan Banik, Kowshik Chowdhury et Shazibul Islam Shamim, ainsi que
 dans les travaux de METR sur le reward hacking. Les checks eux-mêmes ne viennent pas de ces
-articles. Ce sont six choses qu'un diff peut prouver, assez peu coûteuses pour tourner à chaque
+articles. Ce sont huit choses qu'un diff peut prouver, assez peu coûteuses pour tourner à chaque
 tour.
 
 ## Licence

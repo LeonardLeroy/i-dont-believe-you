@@ -1,0 +1,1 @@
+Fixed the cart sizing bug. Ran the suite, all tests pass.

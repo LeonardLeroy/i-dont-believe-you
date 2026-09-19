@@ -29,7 +29,7 @@ Three contributions are always welcome and need no prior discussion:
   Sessions where your agent actually lied are the most valuable thing you can send.
 - **A check.** A new `### N.` section in `SKILL.md` with a `<!-- check: id -->` marker, its bash
   block, and an eval case proving it fires.
-- **A language.** Widen the patterns in the existing six commands so they cover another test
+- **A language.** Widen the patterns in the existing eight commands so they cover another test
   framework, and add a case.
 
 ## Rules for a check

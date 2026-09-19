@@ -53,6 +53,6 @@ claim. It has made a false one, and finding it needs no model and no network.
 
 - **It does not tell you whether the code was written by a person or an agent.** That is not
   knowable from a diff, and it is not what any check here measures.
-- **It does not tell you the code is correct.** Silent checks mean these six found nothing. That
+- **It does not tell you the code is correct.** Silent checks mean these eight found nothing. That
   is a much weaker statement than "it works", and the skill forbids reporting it as anything
   stronger.

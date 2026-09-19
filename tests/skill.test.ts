@@ -21,6 +21,7 @@ describe('SKILL.md', () => {
       'swallowed-error',
       'no-test-touched',
       'test-name-gone',
+      'focused-test',
     ]);
   });
 

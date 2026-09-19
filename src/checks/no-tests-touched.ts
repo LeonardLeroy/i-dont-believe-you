@@ -7,6 +7,8 @@ export const noTestsTouched: Check = {
   title: 'Tests claimed but no test file changed',
   contradicts: ['tests-added'],
   run: ({ files, claims }) => {
+    // An empty diff compared nothing, so it disproves nothing.
+    if (files.length === 0) return [];
     if (!claims.some((claim) => claim.kind === 'tests-added')) return [];
     if (files.some((file) => isTestFile(file.path))) return [];
 

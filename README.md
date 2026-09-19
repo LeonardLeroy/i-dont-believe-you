@@ -25,10 +25,14 @@ Codex, Cursor, opencode and others: [INSTALL.md](INSTALL.md).
 
 ## What it does
 
-Before your agent can tell you anything passed, it has to run seven shell commands against the real
+Before your agent can tell you anything passed, it has to run eight shell commands against the real
 diff and paste the output. If one prints a line, it is not allowed to claim success.
 
 No dependencies, no API key, no model. One markdown file.
+
+Pin the base before the session: `export IDBY_BASE=$(git rev-parse HEAD)`. Without it the
+commands compare against `HEAD`, and a single `git commit` by the agent moves `HEAD` onto its
+own change, which silences all eight.
 
 ## What changes
 
@@ -39,7 +43,7 @@ tell you once the skill is installed.
 | --- | --- |
 | Fixed the retry logic.<br><br>✅ All tests pass. Ready to merge. | Fixed the retry logic.<br><br>I ran check 1 and it printed:<br><code>+it.skip('resets the backoff', ...</code><br><br>So I skipped a test instead of fixing it. The backoff still does not reset. Not ready. |
 
-## The seven checks
+## The eight checks
 
 | #   | catches                                                                     |
 | --- | --------------------------------------------------------------------------- |
@@ -50,6 +54,7 @@ tell you once the skill is installed.
 | 5   | an error swallowed by an empty `catch` or `except: pass`                     |
 | 6   | "I added tests" when no test file changed                                    |
 | 7   | a named test that existed before and does not exist now                      |
+| 8   | a test focused with `.only`, which stops every other test in the file running |
 
 When an agent writes more code than anyone reviews, the test suite becomes the only oversight
 left, and [optimising for it instead of the goal is the predictable
@@ -69,7 +74,7 @@ you would rather not depend on the agent cooperating.
 
 The problem these checks exist for is measured in _All Smoke, No Alarm: Oracle Signals in
 Agent-Authored Test Code_ by Dipayan Banik, Kowshik Chowdhury and Shazibul Islam Shamim, and in
-METR's work on reward hacking. The checks themselves are not from those papers. They are seven
+METR's work on reward hacking. The checks themselves are not from those papers. They are eight
 things a diff can prove, cheap enough to run every turn.
 
 ## License

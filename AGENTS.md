@@ -6,7 +6,7 @@ and to get it installed.
 ## Before you claim anything here
 
 This repository ships a skill that forbids unverified success claims. Apply it to your own work
-in it. Run the six commands in `SKILL.md` against your diff before you report that anything
+in it. Run the eight commands in `SKILL.md` against your diff before you report that anything
 passes, and paste the output.
 
 ## Commands
