@@ -21,7 +21,10 @@ Usage
 
 Options
   -t, --transcript <path>  Agent transcript. Reads stdin when piped and no path is given.
-  -r, --range <range>      git diff range. Default: HEAD (working tree against last commit).
+  -r, --range <range>      git diff range. Default: $IDBY_BASE, or HEAD when that is unset.
+                           HEAD only holds while nobody has committed since the work started:
+                           pin a base the agent cannot move, such as the merge-base of the
+                           pull request, and the checks survive the agent committing its work.
   -C, --cwd <dir>          Repository directory. Default: current directory.
       --only <ids>         Run only these checks, comma separated.
       --skip <ids>         Skip these checks, comma separated.
@@ -142,12 +145,24 @@ async function main(): Promise<void> {
   }
 
   await assertGitRepo(cwd);
-  const files = await diffFromGit(values.range ?? 'HEAD', cwd);
+  const range = values.range ?? process.env['IDBY_BASE'] ?? 'HEAD';
+  const files = await diffFromGit(range, cwd);
+  if (files.length === 0) {
+    reportEmptyDiff(range, values.json);
+    return;
+  }
   const { claims } = extractFrom({ raw, path: values.transcript ?? null });
 
   const verdict = judge({ files, claims, only, skip });
   console.log(values.json ? JSON.stringify(toJson(verdict), null, 2) : toTerminal(verdict));
   process.exit(exitCode(verdict, values.strict));
+}
+
+function reportEmptyDiff(range: string, json: boolean): void {
+  const message = `Nothing was compared: "${range}" is an empty diff, so no check ran. This is not a pass. Pass --range <base>, for example --range origin/main...HEAD, or set IDBY_BASE to the commit the work started from.`;
+  console.log(
+    json ? JSON.stringify({ version: 1, status: 'empty-diff', range, message }, null, 2) : message,
+  );
 }
 
 async function readTranscript(path: string): Promise<string> {
