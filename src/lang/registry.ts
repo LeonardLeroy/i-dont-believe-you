@@ -5,11 +5,16 @@ export interface LanguageProfile {
   testFile: RegExp;
   testDeclaration: RegExp;
   skipMarker: RegExp;
+  /** Focusing a test skips every other test in the file, which is not the same as skipping it. */
+  focusMarker: RegExp;
   assertion: RegExp;
   hollowAssertion: RegExp;
   swallowedError: RegExp;
   mockSetup: RegExp;
 }
+
+/** Matches nothing, for a language with no equivalent of the marker. */
+const NEVER = /(?!)/;
 
 const profiles: LanguageProfile[] = [
   {
@@ -17,11 +22,11 @@ const profiles: LanguageProfile[] = [
     extensions: ['.js', '.jsx', '.mjs', '.cjs', '.ts', '.tsx', '.mts', '.cts'],
     testFile: /(^|[/])(__tests__|tests?)[/]|\.(test|spec)\.[cm]?[jt]sx?$/,
     testDeclaration: /\b(it|test|describe)\s*(\.\w+)?\s*\(/,
-    skipMarker:
-      /\b(it|test|describe)\s*\.\s*(skip|todo|failing)\s*\(|\b[xf](it|describe)\s*\(|\.only\s*\(/,
+    skipMarker: /\b(it|test|describe)\s*\.\s*(skip|todo|failing)\s*\(|\bx(it|describe)\s*\(/,
+    focusMarker: /\b(it|test|describe)\s*\.\s*only\b|\bf(it|describe)\s*\(/,
     assertion: /\b(expect|assert|should)\s*[.(]|\bt\.(is|deepEqual|truthy|throws)\b/,
     hollowAssertion:
-      /expect\s*\(\s*(true|1|'[^']*'|"[^"]*")\s*\)\s*\.\s*(toBe|toEqual|toBeTruthy)\s*\(\s*(true|1|'[^']*'|"[^"]*")?\s*\)|expect\s*\(\s*[\w.]+\s*\)\s*\.\s*toBeDefined\s*\(\s*\)\s*;?\s*$/,
+      /expect\s*\(\s*(true|1|'[^']*'|"[^"]*")\s*\)\s*\.\s*(toBe|toEqual|toBeTruthy)\s*\(\s*(true|1|'[^']*'|"[^"]*")?\s*\)/,
     swallowedError:
       /catch\s*(\([^)]*\))?\s*\{\s*\}|\.catch\s*\(\s*\(?\s*\w*\s*\)?\s*=>\s*\{?\s*\}?\s*\)/,
     mockSetup: /\b(jest|vi)\s*\.\s*(mock|spyOn|doMock)\s*\(|\bsinon\s*\.\s*(stub|mock)\s*\(/,
@@ -33,6 +38,7 @@ const profiles: LanguageProfile[] = [
     testDeclaration: /^\s*(async\s+)?def\s+test_\w+\s*\(/,
     skipMarker:
       /@pytest\s*\.\s*mark\s*\.\s*(skip|skipif|xfail)\b|\bunittest\s*\.\s*skip\b|\bpytest\s*\.\s*skip\s*\(/,
+    focusMarker: NEVER,
     assertion: /^\s*assert\b|\bself\s*\.\s*assert\w+\s*\(/,
     hollowAssertion: /^\s*assert\s+(True|1)\s*$|\bself\s*\.\s*assertTrue\s*\(\s*True\s*\)/,
     swallowedError: /except[^:]*:\s*(pass|\.\.\.)\s*$/,
@@ -44,6 +50,7 @@ const profiles: LanguageProfile[] = [
     testFile: /_test\.go$/,
     testDeclaration: /^\s*func\s+(Test|Benchmark|Fuzz)\w*\s*\(/,
     skipMarker: /\b\w+\s*\.\s*Skip(Now|f)?\s*\(|\bt\s*\.\s*Skip\b/,
+    focusMarker: NEVER,
     assertion: /\b\w+\s*\.\s*(Errorf?|Fatalf?)\s*\(|\b(assert|require)\s*\.\s*\w+\s*\(/,
     hollowAssertion: /\bassert\s*\.\s*True\s*\(\s*\w+\s*,\s*true\s*\)/,
     swallowedError: /if\s+err\s*!=\s*nil\s*\{\s*\}|_\s*=\s*err\b/,
@@ -55,6 +62,7 @@ const profiles: LanguageProfile[] = [
     testFile: /(^|[/])tests?[/]|_test\.rs$/,
     testDeclaration: /#\[\s*(tokio::)?test\s*\]/,
     skipMarker: /#\[\s*ignore\b/,
+    focusMarker: NEVER,
     assertion: /\bassert(_eq|_ne)?\s*!|\bdebug_assert\s*!/,
     hollowAssertion: /\bassert\s*!\s*\(\s*true\s*\)|\bassert_eq\s*!\s*\(\s*(\w+)\s*,\s*\1\s*\)/,
     swallowedError: /\.ok\s*\(\s*\)\s*;|let\s+_\s*=\s*\w+\s*\.\s*unwrap_or/,
