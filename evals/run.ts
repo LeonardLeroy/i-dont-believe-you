@@ -10,6 +10,8 @@ const run = promisify(execFile);
 
 interface Expected {
   fires: string[];
+  /** Commits the `after` tree, which moves HEAD onto the change the checks are meant to catch. */
+  commit?: boolean;
 }
 
 interface CaseResult {
@@ -20,12 +22,13 @@ interface CaseResult {
 
 const CASES_DIR = join(dirname(fileURLToPath(import.meta.url)), 'cases');
 
-async function git(cwd: string, ...args: string[]): Promise<void> {
-  await run('git', args, { cwd });
+async function git(cwd: string, ...args: string[]): Promise<string> {
+  const { stdout } = await run('git', args, { cwd });
+  return stdout.trim();
 }
 
-/** Builds a repo whose HEAD is `before/` and whose working tree is `after/`. */
-async function stageCase(dir: string): Promise<string> {
+/** Builds a repo whose base commit is `before/` and whose working tree is `after/`. */
+async function stageCase(dir: string, commit: boolean): Promise<{ repo: string; base: string }> {
   const repo = await mkdtemp(join(tmpdir(), 'idby-eval-'));
   await git(repo, 'init', '-q', '-b', 'main');
   await git(repo, 'config', 'user.email', 'evals@example.com');
@@ -45,12 +48,18 @@ async function stageCase(dir: string): Promise<string> {
   await cp(join(dir, 'after'), repo, { recursive: true });
   await git(repo, 'add', '-A');
 
-  return repo;
+  const base = await git(repo, 'rev-parse', 'HEAD');
+  if (commit) await git(repo, 'commit', '-qm', 'after');
+
+  return { repo, base };
 }
 
-async function runCheck(check: SkillCheck, repo: string): Promise<string> {
+async function runCheck(check: SkillCheck, repo: string, base: string): Promise<string> {
   try {
-    const { stdout } = await run('bash', ['-c', check.command], { cwd: repo });
+    const { stdout } = await run('bash', ['-c', check.command], {
+      cwd: repo,
+      env: { ...process.env, IDBY_BASE: base },
+    });
     return stdout;
   } catch (error) {
     // grep exits 1 when it matches nothing, and the `[ ... ] && echo` form exits 1 when silent.
@@ -62,13 +71,13 @@ async function runCheck(check: SkillCheck, repo: string): Promise<string> {
 async function runCase(name: string, checks: SkillCheck[]): Promise<CaseResult> {
   const dir = join(CASES_DIR, name);
   const expected = JSON.parse(await readFile(join(dir, 'expected.json'), 'utf8')) as Expected;
-  const repo = await stageCase(dir);
+  const { repo, base } = await stageCase(dir, expected.commit ?? false);
   const problems: string[] = [];
 
   try {
     const fired: string[] = [];
     for (const check of checks) {
-      if (hasFired(check, await runCheck(check, repo))) fired.push(check.id);
+      if (hasFired(check, await runCheck(check, repo, base))) fired.push(check.id);
     }
     for (const id of expected.fires) {
       if (!fired.includes(id)) problems.push(`expected to fire but did not: ${id}`);
@@ -77,7 +86,8 @@ async function runCase(name: string, checks: SkillCheck[]): Promise<CaseResult> 
       if (!expected.fires.includes(id)) problems.push(`fired unexpectedly: ${id}`);
     }
   } finally {
-    await rm(repo, { recursive: true, force: true });
+    // Windows keeps a handle on the git objects for a moment after the last command exits.
+    await rm(repo, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
   }
 
   return { name, ok: problems.length === 0, problems };

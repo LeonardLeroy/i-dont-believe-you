@@ -1,0 +1,1 @@
+Handled the take failure so the queue no longer crashes, and added a test for it. Fully implemented.
