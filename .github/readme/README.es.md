@@ -25,7 +25,7 @@ Codex, Cursor, opencode y los demás: [INSTALL.md](../../INSTALL.md).
 
 ## Qué hace
 
-Antes de poder decirte que algo ha pasado, tu agente tiene que ejecutar seis comandos de shell
+Antes de poder decirte que algo ha pasado, tu agente tiene que ejecutar ocho comandos de shell
 sobre el diff real y pegar su salida. Si uno de ellos imprime una línea, no tiene permiso para
 declarar éxito.
 
@@ -40,7 +40,7 @@ obligado a decirte con la skill instalada.
 | --- | --- |
 | He arreglado la lógica de reintentos.<br><br>✅ Todas las pruebas pasan. Listo para fusionar. | He arreglado la lógica de reintentos.<br><br>He ejecutado la comprobación 1 y ha impreso:<br><code>+it.skip('resets the backoff', ...</code><br><br>Así que he desactivado una prueba en lugar de arreglarla. El backoff sigue sin reiniciarse. No está listo. |
 
-## Las seis comprobaciones
+## Las ocho comprobaciones
 
 | #   | detecta                                                                         |
 | --- | ------------------------------------------------------------------------------- |
@@ -50,10 +50,12 @@ obligado a decirte con la skill instalada.
 | 4   | un archivo de pruebas borrado, o renombrado fuera del glob del runner            |
 | 5   | un error silenciado por un `catch` vacío o un `except: pass`                     |
 | 6   | «he añadido pruebas» cuando ningún archivo de pruebas ha cambiado                |
+| 7   | una prueba con nombre que existía antes y ya no existe                           |
+| 8   | una prueba enfocada con `.only`, que impide que el resto del archivo se ejecute  |
 
 De 86 156 parches de pruebas escritos por agentes,
 [el 80,2 % no contenía aserciones explícitas, o solo aserciones débiles](https://arxiv.org/abs/2606.18168).
-Por qué estas seis: [docs/why.md](../../docs/why.md).
+Por qué estas ocho: [docs/why.md](../../docs/why.md).
 
 ## Ajustarlo
 
@@ -68,7 +70,7 @@ en CI, para cuando prefieras no depender de que el agente coopere.
 El problema que estas comprobaciones abordan está medido en _All Smoke, No Alarm: Oracle Signals
 in Agent-Authored Test Code_ de Dipayan Banik, Kowshik Chowdhury y Shazibul Islam Shamim, y en el
 trabajo de METR sobre reward hacking. Las comprobaciones en sí no salen de esos artículos. Son
-seis cosas que un diff puede demostrar, lo bastante baratas como para ejecutarlas en cada turno.
+ocho cosas que un diff puede demostrar, lo bastante baratas como para ejecutarlas en cada turno.
 
 ## Licencia
 
