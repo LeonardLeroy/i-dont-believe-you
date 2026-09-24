@@ -132,6 +132,69 @@ was skipped and nothing was deleted, so checks 1 and 4 stay silent, but the suit
 reporting on is one file's worth of one test. Call it focusing, not skipping, and say how many
 tests it silenced.
 
+## Run all checks at once
+
+The eight commands above, run in sequence and printed as one status line each. Same commands,
+verbatim, nothing new.
+
+```bash
+print_result() {
+  id="$1"; out="$2"; err="$3"
+  if [ -n "$err" ]; then
+    echo "$id: unable-to-verify"
+    printf '%s\n' "$err" | sed 's/^/  /'
+  elif [ -n "$out" ]; then
+    echo "$id: changed"
+    printf '%s\n' "$out" | sed 's/^/  /'
+  else
+    echo "$id: verified"
+  fi
+}
+
+BASE_ERR=$(git rev-parse "${IDBY_BASE:-HEAD}" 2>&1 >/dev/null)
+if [ -n "$BASE_ERR" ]; then
+  for id in disabled-test hollow-assertion assertions-dropped test-file-gone swallowed-error no-test-touched test-name-gone focused-test; do
+    echo "$id: unable-to-verify"
+    echo "  bad base ($BASE_ERR)"
+  done
+else
+  ERRF=$(mktemp)
+  OUT=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E '\.skip\(|\.todo\(|\bxit\(|\bxdescribe\(|@pytest\.mark\.(skip|xfail)|unittest\.skip|#\[ignore\]|\bt\.Skip\(|@Disabled|@Ignore|markTestSkipped' 2>"$ERRF")
+  print_result "disabled-test" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E 'expect\((true|1)\)\.(toBe|toEqual)\((true|1)\)|assert\s+True\s*$|assertTrue\(True\)|assert!\(true\)|Assert\.True\(true\)|assertThat\(true\)' 2>"$ERRF")
+  print_result "hollow-assertion" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$({ R=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^-' | grep -cE 'expect\(|assert|should\.|\.Errorf?\(|\.Fatalf?\('); A=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -cE 'expect\(|assert|should\.|\.Errorf?\(|\.Fatalf?\('); [ "$R" -gt "$A" ] && echo "assertions: $R removed, $A added"; } 2>"$ERRF")
+  print_result "assertions-dropped" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$(git diff "${IDBY_BASE:-HEAD}" --diff-filter=DR --name-status | grep -Ei '(^|[/[:space:]])(tests?|spec)s?/|[._-](test|spec)\.' 2>"$ERRF")
+  print_result "test-file-gone" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$({ git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E 'catch[^{]*\{\s*\}|except[^:]*:\s*pass\s*$|\.catch\(\s*\(\)\s*=>\s*\{\s*\}\s*\)|if err != nil \{\s*\}'; git diff "${IDBY_BASE:-HEAD}" -U0 | grep -A1 -E '^\+.*(catch[^{]*\{|except[^:]*:|if err != nil \{)[[:space:]]*$' | grep -E '^\+[[:space:]]*(\}|pass|\.\.\.)[[:space:]]*$'; } 2>"$ERRF")
+  print_result "swallowed-error" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$({ git diff "${IDBY_BASE:-HEAD}" --name-only | grep -Ei '(^|/)(tests?|spec)s?/|[._-](test|spec)\.' || echo "NO TEST FILE CHANGED"; } 2>"$ERRF")
+  print_result "no-test-touched" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$(comm -23 <(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^-' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u) <(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -oE "(test|it|describe)(\.\w+)?\(\s*['\"][^'\"]*" | sed -E "s/^.*['\"]//" | sort -u) 2>"$ERRF")
+  print_result "test-name-gone" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+
+  ERRF=$(mktemp)
+  OUT=$(git diff "${IDBY_BASE:-HEAD}" -U0 | grep -E '^\+' | grep -E '\b(it|test|describe)\s*\.\s*only\b|\bf(it|describe)\s*\(' 2>"$ERRF")
+  print_result "focused-test" "$OUT" "$(cat "$ERRF")"; rm -f "$ERRF"
+fi
+```
+
+`changed` is the script's job. Deciding what a hit means for this diff is not: say what happened in
+your own prose.
+
 ## Locating a hit
 
 The commands print the offending lines, not their location. To find one:

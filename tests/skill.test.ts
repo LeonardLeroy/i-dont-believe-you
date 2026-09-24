@@ -29,8 +29,8 @@ describe('SKILL.md', () => {
     const markdown = await readFile(skillPath(), 'utf8');
     const blocks = markdown.match(/```bash/g) ?? [];
     const checks = parseChecks(markdown);
-    // The "Locating a hit" block is a helper, not a check.
-    expect(blocks.length).toBe(checks.length + 1);
+    // "Run all checks at once" and "Locating a hit" are helper blocks, not checks.
+    expect(blocks.length).toBe(checks.length + 2);
   });
 
   it('keeps the commands runnable from a shell', async () => {
